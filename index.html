@@ -10,22 +10,30 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      display: block;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
     }
+
     #pdfContainer {
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       width: 100%;
+      height: auto;
     }
+
     .pdf-page {
-      margin: 10px 0;
+      margin: 0;
     }
+
     canvas {
-      border: 1px solid #ccc;
       display: block;
+      width: 100%; /* Adjust width to fit better on mobile */
+      height: auto; /* Maintain aspect ratio */
     }
+
     /* Styled Button */
     #downloadPdf {
       position: fixed;
@@ -51,73 +59,80 @@
     #downloadPdf:active {
       transform: scale(0.95);
     }
-
   </style>
 </head>
 <body>
 <div id="pdfContainer"></div>
+
 <button id="downloadPdf">Download PDF</button>
 
 <script>
-  const url = 'static/DRINK_LIST_Christmas.pdf'; // Update the path to your PDF
-  const pdfjsLib = window['pdfjs-dist/build/pdf'];
-
-  // Configure workerSrc
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.worker.js';
-
-  // Load the PDF
-  const pdfContainer = document.getElementById('pdfContainer');
-  const loadingTask = pdfjsLib.getDocument(url);
-
-  loadingTask.promise.then(pdf => {
-    const totalPages = pdf.numPages;
-
-    // Helper function to render a single page
-    function renderPage(pageNumber) {
-      pdf.getPage(pageNumber).then(page => {
-        const scale = 1.5;
-        const viewport = page.getViewport({ scale });
-
-        // Create a container for the page
-        const pageContainer = document.createElement('div');
-        pageContainer.className = 'pdf-page';
-
-        // Create a canvas for rendering
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-
-        // Set canvas dimensions based on the viewport
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-
-        pageContainer.appendChild(canvas);
-        pdfContainer.appendChild(pageContainer);
-
-        const renderContext = {
-          canvasContext: context,
-          viewport: viewport,
-        };
-
-        page.render(renderContext).promise.then(() => {
-          console.log(`Page ${pageNumber} rendered`);
-        });
-      });
-    }
-
-    // Render all pages
-    for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
-      renderPage(pageNumber);
-    }
-  }).catch(error => {
-    console.error('Error loading PDF:', error);
-  });
-
   document.getElementById('downloadPdf').addEventListener('click', () => {
     const link = document.createElement('a');
     link.href = 'static/DRINK_LIST_Christmas.pdf'; // Update the path to your PDF
     link.download = 'DRINK_LIST_Christmas.pdf';
     link.click();
   });
+
+  const url = 'static/DRINK_LIST_Christmas.pdf'; // Update the path to your PDF
+  const pdfjsLib = window['pdfjs-dist/build/pdf'];
+
+  // Configure workerSrc
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.worker.js';
+
+  const pdfContainer = document.getElementById('pdfContainer');
+
+  const loadingTask = pdfjsLib.getDocument(url);
+
+  function renderPdf() {
+    loadingTask.promise.then(pdf => {
+      const totalPages = pdf.numPages;
+      const viewportWidth = window.innerWidth;  // Use device width
+      const viewportHeight = window.innerHeight; // Use device height
+
+      // Adjust scale for smaller devices like iPhones
+      const scale = Math.min(
+        viewportWidth / 600,  // Assume standard PDF width of 600px
+        (viewportHeight / totalPages) / 900  // Adjust height scaling for smaller screens
+      ) * 1.5; // Slightly increase scaling for better readability on smaller screens
+
+      pdfContainer.innerHTML = ''; // Clear container for re-rendering (if screen rotates)
+
+      function renderPage(pageNumber) {
+        pdf.getPage(pageNumber).then(page => {
+          const viewport = page.getViewport({ scale });
+
+          const pageContainer = document.createElement('div');
+          pageContainer.className = 'pdf-page';
+
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+
+          pageContainer.appendChild(canvas);
+          pdfContainer.appendChild(pageContainer);
+
+          const renderContext = {
+            canvasContext: context,
+            viewport: viewport,
+          };
+
+          page.render(renderContext);
+        });
+      }
+
+      for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
+        renderPage(pageNumber);
+      }
+    }).catch(error => {
+      console.error('Error loading PDF:', error);
+    });
+  }
+
+  // Render PDF initially and on window resize
+  renderPdf();
+  window.addEventListener('resize', renderPdf);
 </script>
 </body>
 </html>
