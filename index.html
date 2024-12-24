@@ -1,32 +1,55 @@
-<!doctype html>
-<html class="no-js" lang="">
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
-  <link rel="stylesheet" href="css/style.css">
-  <meta name="description" content="Christmas Drink List">
-
-  <meta property="og:title" content="">
-  <meta property="og:type" content="">
-  <meta property="og:url" content="">
-  <meta property="og:image" content="">
-  <meta property="og:image:alt" content="">
-
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon.png">
-
-  <meta name="theme-color" content="#fafafa">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Viewer</title>
+  <script src="https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.js"></script>
+  <script src="https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.worker.js"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    #pdfViewer {
+      width: 95%;
+      height: 95%;
+      border: 1px solid #ccc;
+    }
+  </style>
 </head>
-
 <body>
+<canvas id="pdfViewer"></canvas>
 
-  <script src="js/app.js"></script>
+<script>
+  const url = 'static/DRINK_LIST_Christmas.pdf'; // Update the path to your PDF
+  const pdfjsLib = window['pdfjs-dist/build/pdf'];
 
-  <iframe src=static/DRINK_LIST_Christmas.pdf></iframe>
+  const loadingTask = pdfjsLib.getDocument(url);
+  loadingTask.promise.then(pdf => {
+    pdf.getPage(1).then(page => {
+      const scale = 1.5;
+      const viewport = page.getViewport({ scale: scale });
 
+      const canvas = document.getElementById('pdfViewer');
+      const context = canvas.getContext('2d');
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      const renderContext = {
+        canvasContext: context,
+        viewport: viewport
+      };
+      page.render(renderContext);
+    });
+  }).catch(error => {
+    console.error('Error loading PDF:', error);
+  });
+</script>
 </body>
-
 </html>
