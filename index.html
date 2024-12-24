@@ -25,12 +25,12 @@
     }
 
     .pdf-page {
-      margin: 0;
+      margin: 5px 0;
     }
 
     canvas {
       display: block;
-      width: 100%; /* Adjust width to fit better on mobile */
+      width: 95%; /* Adjust width to fit better on mobile */
       height: auto; /* Maintain aspect ratio */
     }
 
@@ -94,7 +94,7 @@
       const scale = Math.min(
         viewportWidth / 600,  // Assume standard PDF width of 600px
         (viewportHeight / totalPages) / 900  // Adjust height scaling for smaller screens
-      ) * 1.5; // Slightly increase scaling for better readability on smaller screens
+      ) * 1.4; // Slightly increase scaling for better readability on smaller screens
 
       pdfContainer.innerHTML = ''; // Clear container for re-rendering (if screen rotates)
 
@@ -107,8 +107,15 @@
 
           const canvas = document.createElement('canvas');
           const context = canvas.getContext('2d');
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
+
+          // Set higher resolution for the canvas
+          const outputScale = window.devicePixelRatio || 1;
+          canvas.width = Math.floor(viewport.width * outputScale);
+          canvas.height = Math.floor(viewport.height * outputScale);
+
+          // Set CSS width and height for display
+          canvas.style.width = `${viewport.width}px`;
+          canvas.style.height = `${viewport.height}px`;
 
           pageContainer.appendChild(canvas);
           pdfContainer.appendChild(pageContainer);
@@ -116,6 +123,7 @@
           const renderContext = {
             canvasContext: context,
             viewport: viewport,
+            transform: [outputScale, 0, 0, outputScale, 0, 0] // Scale for high-DPI rendering
           };
 
           page.render(renderContext);
