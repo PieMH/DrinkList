@@ -69,12 +69,12 @@
 <script>
   document.getElementById('downloadPdf').addEventListener('click', () => {
     const link = document.createElement('a');
-    link.href = 'static/DRINK_LIST_Christmas.pdf'; // Update the path to your PDF
-    link.download = 'DRINK_LIST_Christmas.pdf';
+    link.href = 'static/DRINK_LIST_New_Year.pdf'; // Update the path to your PDF
+    link.download = 'DRINK_LIST_New_Year.pdf';
     link.click();
   });
 
-  const url = 'static/DRINK_LIST_Christmas.pdf'; // Update the path to your PDF
+  const url = 'static/DRINK_LIST_New_Year.pdf'; // Update the path to your PDF
   const pdfjsLib = window['pdfjs-dist/build/pdf'];
 
   // Configure workerSrc
@@ -82,21 +82,23 @@
 
   const pdfContainer = document.getElementById('pdfContainer');
 
+  // Cache initial viewport dimensions
+  const initialWidth = window.innerWidth;
+  const initialHeight = window.innerHeight;
+
   const loadingTask = pdfjsLib.getDocument(url);
 
   function renderPdf() {
     loadingTask.promise.then(pdf => {
       const totalPages = pdf.numPages;
-      const viewportWidth = window.innerWidth;  // Use device width
-      const viewportHeight = window.innerHeight; // Use device height
 
-      // Adjust scale for smaller devices like iPhones
+      // Adjust scale based on initial dimensions only
       const scale = Math.min(
-        viewportWidth / 600,  // Assume standard PDF width of 600px
-        (viewportHeight / totalPages) / 900  // Adjust height scaling for smaller screens
-      ) * 1.4; // Slightly increase scaling for better readability on smaller screens
+        initialWidth / 600,  // Assume standard PDF width of 600px
+        (initialHeight / totalPages) / 900  // Adjust height scaling for smaller screens
+      ) * 1.2; // Slightly increase scaling for better readability
 
-      pdfContainer.innerHTML = ''; // Clear container for re-rendering (if screen rotates)
+      pdfContainer.innerHTML = ''; // Clear container for re-rendering (if needed)
 
       function renderPage(pageNumber) {
         pdf.getPage(pageNumber).then(page => {
@@ -138,9 +140,8 @@
     });
   }
 
-  // Render PDF initially and on window resize
+  // Render PDF only once based on initial dimensions
   renderPdf();
-  window.addEventListener('resize', renderPdf);
 </script>
 </body>
 </html>
